@@ -26,6 +26,7 @@ public:
  protected:
     void _process_rc_pulse(uint16_t width_s0, uint16_t width_s1);
     void _update_periods(uint16_t *periods, uint8_t len);
+    void _process_rpio_data(uint16_t regs[32]);
 
  private:
     volatile bool new_rc_input;

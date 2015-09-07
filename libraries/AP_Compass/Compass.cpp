@@ -443,7 +443,10 @@ void Compass::_detect_backends(void)
         return;
     }
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX && CONFIG_HAL_BOARD_SUBTYPE != HAL_BOARD_SUBTYPE_LINUX_NONE && CONFIG_HAL_BOARD_SUBTYPE != HAL_BOARD_SUBTYPE_LINUX_BEBOP
+#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX && CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
+    _add_backend(AP_Compass_HMC5843::detect_i2c(*this, hal.i2c));
+    _add_backend(AP_Compass_LSM303D::detect(*this));
+#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX && CONFIG_HAL_BOARD_SUBTYPE != HAL_BOARD_SUBTYPE_LINUX_NONE && CONFIG_HAL_BOARD_SUBTYPE != HAL_BOARD_SUBTYPE_LINUX_BEBOP
     _add_backend(AP_Compass_HMC5843::detect_i2c(*this, hal.i2c));
     _add_backend(AP_Compass_AK8963::detect_mpu9250(*this));
 #elif HAL_COMPASS_DEFAULT == HAL_COMPASS_HIL
@@ -467,22 +470,22 @@ void Compass::_detect_backends(void)
     }
 }
 
-void 
+void
 Compass::accumulate(void)
-{    
+{
     for (uint8_t i=0; i< _backend_count; i++) {
         // call accumulate on each of the backend
         _backends[i]->accumulate();
     }
 }
 
-bool 
+bool
 Compass::read(void)
 {
     for (uint8_t i=0; i< _backend_count; i++) {
         // call read on each of the backend. This call updates field[i]
         _backends[i]->read();
-    }    
+    }
     for (uint8_t i=0; i < COMPASS_MAX_INSTANCES; i++) {
         _state[i].healthy = (hal.scheduler->millis() - _state[i].last_update_ms < 500);
     }
@@ -734,7 +737,7 @@ void Compass::setHIL(uint8_t instance, const Vector3f &mag)
     _state[instance].last_update_usec = hal.scheduler->micros();
 }
 
-const Vector3f& Compass::getHIL(uint8_t instance) const 
+const Vector3f& Compass::getHIL(uint8_t instance) const
 {
     return _hil.field[instance];
 }
@@ -744,7 +747,7 @@ void Compass::_setup_earth_field(void)
 {
     // assume a earth field strength of 400
     _hil.Bearth(400, 0, 0);
-    
+
     // rotate _Bearth for inclination and declination. -66 degrees
     // is the inclination in Canberra, Australia
     Matrix3f R;
