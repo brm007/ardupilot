@@ -26,12 +26,11 @@ public:
  protected:
     void _process_rc_pulse(uint16_t width_s0, uint16_t width_s1);
     void _update_periods(uint16_t *periods, uint8_t len);
-    void _process_rpio_data(uint16_t regs[32]);
 
  private:
     volatile bool new_rc_input;
 
-    uint16_t _pwm_values[LINUX_RC_INPUT_NUM_CHANNELS];    
+    uint16_t _pwm_values[LINUX_RC_INPUT_NUM_CHANNELS];
     uint8_t  _num_channels;
 
     void _process_ppmsum_pulse(uint16_t width);

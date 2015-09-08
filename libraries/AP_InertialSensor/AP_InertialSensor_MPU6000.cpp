@@ -17,7 +17,7 @@ extern const AP_HAL::HAL& hal;
 #include <AP_HAL_Linux/GPIO.h>
 #define MPU6000_DRDY_PIN BBB_P8_14
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
-#include "../AP_HAL_Linux/GPIO.h"
+#include <AP_HAL_Linux/GPIO.h>
 #define MPU6000_DRDY_PIN RPI_GPIO_24
 #endif
 #endif
@@ -638,10 +638,10 @@ void AP_InertialSensor_MPU6000::start()
 }
 
 /*
-  process any 
+  process any
  */
 bool AP_InertialSensor_MPU6000::update( void )
-{    
+{
 #if !MPU6000_FAST_SAMPLING
     if (_sum_count < _sample_count) {
         // we don't have enough samples yet

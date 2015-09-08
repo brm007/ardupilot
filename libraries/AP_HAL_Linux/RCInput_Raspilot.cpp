@@ -23,13 +23,13 @@ void LinuxRCInput_Raspilot::init(void*)
 {
     _spi = hal.spi->device(AP_HAL::SPIDevice_RASPIO);
     _spi_sem = _spi->get_semaphore();
-    
+
     if (_spi_sem == NULL) {
         hal.scheduler->panic(PSTR("PANIC: RCIutput_Raspilot did not get "
                                   "valid SPI semaphore!"));
         return; // never reached
     }
-    
+
     // start the timer process to read samples
     hal.scheduler->register_timer_process(FUNCTOR_BIND_MEMBER(&LinuxRCInput_Raspilot::_poll_data, void));
 }
@@ -40,9 +40,9 @@ void LinuxRCInput_Raspilot::_poll_data(void)
     if (hal.scheduler->micros() - _last_timer < 10000) {
         return;
     }
-    
+
     _last_timer = hal.scheduler->micros();
-    
+
     if (!_spi_sem->take_nonblocking()) {
         return;
     }
@@ -58,9 +58,17 @@ void LinuxRCInput_Raspilot::_poll_data(void)
     _spi->transaction((uint8_t *)&_dma_packet_tx, (uint8_t *)&_dma_packet_rx, sizeof(_dma_packet_tx));
     /* get reg4 data from raspilotio */
     _spi->transaction((uint8_t *)&_dma_packet_tx, (uint8_t *)&_dma_packet_rx, sizeof(_dma_packet_tx));
-    
-    _process_rpio_data(_dma_packet_rx.regs);
-    
+
+    uint16_t num_values = _dma_packet_rx.regs[0];
+    uint16_t rc_ok = _dma_packet_rx.regs[1] & (1 << 4);
+    uint8_t rx_crc = _dma_packet_rx.crc;
+
+    _dma_packet_rx.crc = 0;
+
+    if ( rc_ok && (rx_crc == crc_packet(&_dma_packet_rx)) ) {
+      _update_periods(&_dma_packet_rx.regs[6], (uint8_t)num_values);
+    }
+
     _spi_sem->give();
 }
 

@@ -32,17 +32,17 @@ void LinuxRCInput::init(void* machtnichts)
 {
 }
 
-bool LinuxRCInput::new_input() 
+bool LinuxRCInput::new_input()
 {
     return new_rc_input;
 }
 
-uint8_t LinuxRCInput::num_channels() 
+uint8_t LinuxRCInput::num_channels()
 {
     return _num_channels;
 }
 
-uint16_t LinuxRCInput::read(uint8_t ch) 
+uint16_t LinuxRCInput::read(uint8_t ch)
 {
     new_rc_input = false;
     if (_override[ch]) {
@@ -54,7 +54,7 @@ uint16_t LinuxRCInput::read(uint8_t ch)
     return _pwm_values[ch];
 }
 
-uint8_t LinuxRCInput::read(uint16_t* periods, uint8_t len) 
+uint8_t LinuxRCInput::read(uint16_t* periods, uint8_t len)
 {
     uint8_t i;
     for (i=0; i<len; i++) {
@@ -68,7 +68,7 @@ uint8_t LinuxRCInput::read(uint16_t* periods, uint8_t len)
     return (i+1);
 }
 
-bool LinuxRCInput::set_overrides(int16_t *overrides, uint8_t len) 
+bool LinuxRCInput::set_overrides(int16_t *overrides, uint8_t len)
 {
     bool res = false;
     if(len > LINUX_RC_INPUT_NUM_CHANNELS){
@@ -80,7 +80,7 @@ bool LinuxRCInput::set_overrides(int16_t *overrides, uint8_t len)
     return res;
 }
 
-bool LinuxRCInput::set_override(uint8_t channel, int16_t override) 
+bool LinuxRCInput::set_override(uint8_t channel, int16_t override)
 {
     if (override < 0) return false; /* -1: no change. */
     if (channel < LINUX_RC_INPUT_NUM_CHANNELS) {
@@ -167,7 +167,7 @@ void LinuxRCInput::_process_sbus_pulse(uint16_t width_s0, uint16_t width_s1)
         // invalid data
         goto reset;
     }
-	
+
     if (bits_s0+bit_ofs > 10) {
         // invalid data as last two bits must be stop bits
         goto reset;
@@ -214,9 +214,9 @@ void LinuxRCInput::_process_sbus_pulse(uint16_t width_s0, uint16_t width_s1)
         uint16_t values[LINUX_RC_INPUT_NUM_CHANNELS];
         uint16_t num_values=0;
         bool sbus_failsafe=false, sbus_frame_drop=false;
-        if (sbus_decode(bytes, values, &num_values, 
-                        &sbus_failsafe, &sbus_frame_drop, 
-                        LINUX_RC_INPUT_NUM_CHANNELS) && 
+        if (sbus_decode(bytes, values, &num_values,
+                        &sbus_failsafe, &sbus_frame_drop,
+                        LINUX_RC_INPUT_NUM_CHANNELS) &&
             num_values >= 5) {
             for (i=0; i<num_values; i++) {
                 _pwm_values[i] = values[i];
@@ -231,7 +231,7 @@ void LinuxRCInput::_process_sbus_pulse(uint16_t width_s0, uint16_t width_s1)
     }
     return;
 reset:
-    memset(&sbus_state, 0, sizeof(sbus_state));        
+    memset(&sbus_state, 0, sizeof(sbus_state));
 }
 
 void LinuxRCInput::_process_dsm_pulse(uint16_t width_s0, uint16_t width_s1)
@@ -249,7 +249,7 @@ void LinuxRCInput::_process_dsm_pulse(uint16_t width_s0, uint16_t width_s1)
 
     byte_ofs = dsm_state.bit_ofs/10;
     bit_ofs = dsm_state.bit_ofs%10;
-    
+
     if(byte_ofs > 15) {
         // invalid data
         goto reset;
@@ -272,7 +272,7 @@ void LinuxRCInput::_process_dsm_pulse(uint16_t width_s0, uint16_t width_s1)
             for (i=0; i<16; i++) {
                 // get raw data
                 uint16_t v = dsm_state.bytes[i];
-                
+
                 // check start bit
                 if ((v & 1) != 0) {
                     goto reset;
@@ -285,12 +285,12 @@ void LinuxRCInput::_process_dsm_pulse(uint16_t width_s0, uint16_t width_s1)
             }
             uint16_t values[8];
             uint16_t num_values=0;
-            if (dsm_decode(hal.scheduler->micros64(), bytes, values, &num_values, 8) && 
+            if (dsm_decode(hal.scheduler->micros64(), bytes, values, &num_values, 8) &&
                 num_values >= 5) {
                 for (i=0; i<num_values; i++) {
                     _pwm_values[i] = values[i];
                 }
-                _num_channels = num_values;                
+                _num_channels = num_values;
                 new_rc_input = true;
             }
         }
@@ -309,29 +309,7 @@ void LinuxRCInput::_process_dsm_pulse(uint16_t width_s0, uint16_t width_s1)
     dsm_state.bit_ofs += bits_s1;
     return;
 reset:
-    memset(&dsm_state, 0, sizeof(dsm_state));        
-}
-
-void LinuxRCInput::_process_rpio_data(uint16_t regs[32])
-{
-    uint8_t i;
-    
-    uint16_t num_values = regs[0];
-    uint16_t rc_ok = regs[1] & (1 << 4);
-    
-    if ( rc_ok && (num_values >= 5) && (num_values <= 30) ) {
-        
-        for (i=0; (i<num_values)&&(i<LINUX_RC_INPUT_NUM_CHANNELS); i++) {
-            
-            uint16_t value = regs[6+i];
-            if(value <= 2500) _pwm_values[i] = value;
-            
-        }
-        
-        _num_channels = num_values;
-        new_rc_input = true;
-        
-    }
+    memset(&dsm_state, 0, sizeof(dsm_state));
 }
 
 /*
