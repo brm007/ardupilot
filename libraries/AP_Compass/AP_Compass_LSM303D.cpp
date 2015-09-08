@@ -481,9 +481,24 @@ void AP_Compass_LSM303D::_collect_samples()
     if (!read_raw()) {
         error("read_raw failed\n");
     } else {
-        _mag_x_accum += _mag_x;
-        _mag_y_accum += _mag_y;
-        _mag_z_accum += _mag_z;
+        Vector3f raw_field = Vector3f(_mag_x, _mag_y, _mag_z);
+        uint32_t time_us = hal.scheduler->micros();
+
+        // rotate raw_field from sensor frame to body frame
+        rotate_field(raw_field, _compass_instance);
+
+        // publish raw_field (uncorrected point sample) for calibration use
+        publish_raw_field(raw_field, time_us, _compass_instance);
+
+        // correct raw_field for known errors
+        correct_field(raw_field, _compass_instance);
+
+        // publish raw_field (corrected point sample) for EKF use
+        publish_unfiltered_field(raw_field, time_us, _compass_instance);
+
+        _mag_x_accum += raw_field.x;
+        _mag_y_accum += raw_field.y;
+        _mag_z_accum += raw_field.z;
         _accum_count++;
         if (_accum_count == 10) {
             _mag_x_accum /= 2;
