@@ -13,7 +13,7 @@
 #include "SPIDriver.h"
 #include "AnalogIn.h"
 #include "AnalogIn_Navio.h"
-#include "RaspilotAnalogIn.h"
+#include "AnalogIn_Raspilot.h"
 #include "Storage.h"
 #include "GPIO.h"
 #include "RCInput.h"
@@ -33,4 +33,3 @@
 #include "Util.h"
 
 #endif // __AP_HAL_LINUX_PRIVATE_H__
-
