@@ -444,6 +444,9 @@ void Plane::Log_Write_RC(void)
 {
     DataFlash.Log_Write_RCIN();
     DataFlash.Log_Write_RCOUT();
+    if (rssi.enabled()) {
+        DataFlash.Log_Write_RSSI(rssi);
+    }
 }
 
 void Plane::Log_Write_Baro(void)
@@ -519,6 +522,7 @@ void Plane::Log_Write_Vehicle_Startup_Messages()
 {
     // only 200(?) bytes are guaranteed by DataFlash
     Log_Write_Startup(TYPE_GROUNDSTART_MSG);
+    DataFlash.Log_Write_Mode(control_mode);
 }
 
 // start a new log

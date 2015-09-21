@@ -194,8 +194,12 @@ private:
     RangeFinder rangefinder {serial_manager};
 
     struct {
-        bool in_range;
+        bool in_range:1;
+        bool have_initial_reading:1;
+        bool in_use:1;
+        float initial_range;
         float correction;
+        float initial_correction;
         uint32_t last_correction_time_ms;
         uint8_t in_range_count;
     } rangefinder_state;
@@ -482,6 +486,9 @@ private:
 
         // time stamp of when we start flying while in auto mode in milliseconds
         uint32_t started_flying_in_auto_ms;
+
+        // barometric altitude at start of takeoff
+        float baro_takeoff_alt;
     } auto_state;
 
     struct {
