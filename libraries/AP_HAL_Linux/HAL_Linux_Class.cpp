@@ -153,11 +153,11 @@ void _usage(void)
     printf("Usage: -A uartAPath -B uartBPath -C uartCPath\n");
     printf("Options:\n");
     printf("\t-serial:          -A /dev/ttyO4\n");
-    printf("\t                  -B /dev/ttyS1\n");    
+    printf("\t                  -B /dev/ttyS1\n");
     printf("\t-tcp:             -C tcp:192.168.2.15:1243:wait\n");
-    printf("\t                  -A tcp:11.0.0.2:5678\n");    
-    printf("\t                  -A udp:11.0.0.2:5678\n");    
-    printf("\t-custom log path:\n");        
+    printf("\t                  -A tcp:11.0.0.2:5678\n");
+    printf("\t                  -A udp:11.0.0.2:5678\n");
+    printf("\t-custom log path:\n");
     printf("\t                  --log-directory /var/APM/logs\n");
     printf("\t                  -l /var/APM/logs\n");
     printf("\t-custom terrain path:\n");
@@ -165,7 +165,7 @@ void _usage(void)
     printf("\t                   -t /var/APM/terrain\n");
 }
 
-void HAL_Linux::init(int argc,char* const argv[]) const 
+void HAL_Linux::init(int argc,char* const argv[]) const
 {
     int opt;
     const struct GetOptLong::option options[] = {
@@ -199,7 +199,7 @@ void HAL_Linux::init(int argc,char* const argv[]) const
         case 'E':
             uartEDriver.set_device_path(gopt.optarg);
             break;
-        case 'l':            
+        case 'l':
             utilInstance.set_custom_log_directory(gopt.optarg);
             break;
         case 't':
@@ -223,11 +223,11 @@ void HAL_Linux::init(int argc,char* const argv[]) const
 #else
     i2c->begin();
 #endif
+    spi->init(NULL);
     rcout->init(NULL);
     rcin->init(NULL);
-    uartA->begin(115200);    
-    uartE->begin(115200);    
-    spi->init(NULL);
+    uartA->begin(115200);
+    uartE->begin(115200);
     analogin->init(NULL);
     utilInstance.init(argc+gopt.optind-1, &argv[gopt.optind-1]);
 }
