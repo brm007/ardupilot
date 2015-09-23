@@ -451,6 +451,13 @@ bool AP_InertialSensor_LSM9DS0::_init_sensor()
 
     hal.scheduler->suspend_timer_procs();
 
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
+    _gyro_disable_i2c();
+    _accel_disable_i2c();
+    hal.scheduler->resume_timer_procs();
+    return false;
+#endif
+
     uint8_t whoami;
 
     bool whoami_ok = true;
