@@ -39,6 +39,8 @@
 #endif
 #elif CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
+#include "../AP_HAL_Linux/px4io_protocol.h"
 #endif
 
 extern const AP_HAL::HAL& hal;
@@ -76,6 +78,19 @@ const AP_Param::GroupInfo AP_BoardConfig::var_info[] PROGMEM = {
     // @Values: 0:Disabled,1:Enabled
     AP_GROUPINFO("SBUS_OUT",   4, AP_BoardConfig, _sbus_out_enable, 0),
 #elif CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
+
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
+    // @Param: SAFETYENABLE
+    // @DisplayName:  Enable use of safety arming switch
+    // @Description: Disabling this option will disable the use of the safety switch on RasPilot for arming. Use of the safety switch is highly recommended, so you should leave this option set to 1 except in unusual circumstances.
+    // @Values: 0:Disabled,1:Enabled
+    AP_GROUPINFO("SAFETYENABLE",   3, AP_BoardConfig, _safety_enable, 0),
+
+    // @Param: SBUS_OUT
+    // @DisplayName:  Enable use of SBUS output
+    // @Description: Enabling this option on a RasPilot enables SBUS servo output from the SBUS output connector
+    // @Values: 0:Disabled,1:Enabled
+    AP_GROUPINFO("SBUS_OUT",   4, AP_BoardConfig, _sbus_out_enable, 0),
 #endif
 
     // @Param: SERIAL_NUM
@@ -105,8 +120,8 @@ void AP_BoardConfig::init()
         hal.scheduler->panic("Unable to open /dev/px4fmu");
     }
     if (ioctl(fd, PWM_SERVO_SET_COUNT, _pwm_count.get()) != 0) {
-        hal.console->printf("RCOutput: Unable to setup alt PWM to %u channels\n", _pwm_count.get());  
-    }   
+        hal.console->printf("RCOutput: Unable to setup alt PWM to %u channels\n", _pwm_count.get());
+    }
     close(fd);
 
     hal.uartC->set_flow_control((AP_HAL::UARTDriver::flow_control)_ser1_rtscts.get());
@@ -125,10 +140,20 @@ void AP_BoardConfig::init()
         }
         if (fd != -1) {
             close(fd);
-        }   
+        }
     }
 #elif CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     /* configure the VRBRAIN driver for the right number of PWMs */
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
+    if (_safety_enable.get() == 0) {
+        hal.rcout->force_safety_off();
+    }
 
-#endif    
+    if (_sbus_out_enable.get() == 1) {
+        uint16_t tx_buf[1] = {PX4IO_P_SETUP_FEATURES_SBUS1_OUT};
+        hal.scheduler->suspend_timer_procs();
+        hal.iomcu->write(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_FEATURES, 1, tx_buf);
+        hal.scheduler->resume_timer_procs();
+    }
+#endif
 }

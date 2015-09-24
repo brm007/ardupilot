@@ -19,3 +19,8 @@ int  EmptyIOMCUDriver::spiuart(uint8_t tx_len, const uint8_t *tx_data, uint8_t r
 {
     return 0;
 }
+
+int  EmptyIOMCUDriver::get_safety_state()
+{
+    return 0;
+}

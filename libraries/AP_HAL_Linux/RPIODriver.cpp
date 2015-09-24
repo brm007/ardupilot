@@ -108,7 +108,7 @@ bool LinuxRPIODriver::write(uint8_t page, uint8_t offset, uint8_t len, const uin
     return true;
 }
 
-int  LinuxRPIODriver::spiuart(uint8_t tx_len, const uint8_t *tx_data, uint8_t rx_len, uint8_t *rx_data)
+int LinuxRPIODriver::spiuart(uint8_t tx_len, const uint8_t *tx_data, uint8_t rx_len, uint8_t *rx_data)
 {
     struct IOPacket _dma_packet_tx, _dma_packet_rx;
 
@@ -156,10 +156,30 @@ int  LinuxRPIODriver::spiuart(uint8_t tx_len, const uint8_t *tx_data, uint8_t rx
     return -1;
 }
 
+int LinuxRPIODriver::get_safety_state()
+{
+    return _safety_state;
+}
+
 void LinuxRPIODriver::_poll_data()
 {
     if (hal.scheduler->micros() - _last_update_timestamp < 10000) {
         return;
+    }
+
+    if (_div_100 == 10) {             //check safety switch state every 100ms
+        uint16_t rx_buf;
+
+        read(PX4IO_PAGE_STATUS, PX4IO_P_STATUS_FLAGS, 1, &rx_buf);
+        if (rx_buf & PX4IO_P_STATUS_FLAGS_SAFETY_OFF) {
+            _safety_state = 2;
+        } else {
+            _safety_state = 1;
+        }
+
+        _div_100 = 0;
+    } else {
+        _div_100 ++;
     }
 
     _last_update_timestamp = hal.scheduler->micros();

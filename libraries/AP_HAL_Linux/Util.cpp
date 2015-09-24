@@ -57,6 +57,25 @@ void LinuxUtil::_toneAlarm_timer_tick(){
 
 }
 
+/*
+  return state of safety switch
+ */
+enum LinuxUtil::safety_state LinuxUtil::safety_switch_state(void)
+{
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
+    int _safety_state = hal.iomcu->get_safety_state();
+    if (_safety_state == 1) {
+        return AP_HAL::Util::SAFETY_DISARMED;
+    } else if (_safety_state == 2) {
+        return AP_HAL::Util::SAFETY_ARMED;
+    } else {
+        return AP_HAL::Util::SAFETY_NONE;
+    }
+#else
+    return AP_HAL::Util::SAFETY_NONE;
+#endif
+}
+
 void LinuxUtil::set_system_clock(uint64_t time_utc_usec)
 {
 #if CONFIG_HAL_BOARD_SUBTYPE != HAL_BOARD_SUBTYPE_LINUX_NONE

@@ -32,9 +32,10 @@ private:
 #endif
 #if CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
+    AP_Int8 _safety_enable;
+    AP_Int8 _sbus_out_enable;
 #endif
 };
 
 #endif // __AP_BOARDCONFIG_H__
-
-

@@ -11,6 +11,7 @@ public:
     bool read(uint8_t page, uint8_t offset, uint8_t len, uint16_t *data);
     bool write(uint8_t page, uint8_t offset, uint8_t len, const uint16_t *data);
     int  spiuart(uint8_t tx_len, const uint8_t *tx_data, uint8_t rx_len, uint8_t *rx_data);
+    int  get_safety_state();
 
 private:
     void _poll_data();
@@ -19,6 +20,9 @@ private:
     AP_HAL::Semaphore *_spi_sem = nullptr;
 
     uint32_t _last_update_timestamp = 0;
+    int _safety_state = 0;
+
+    uint32_t _div_100 = 0;
 };
 
 #endif //__AP_HAL_LINUX_RPIODRIVER_H__
