@@ -15,4 +15,3 @@ public:
 extern const HAL_Linux AP_HAL_Linux;
 
 #endif // __AP_HAL_LINUX_CLASS_H__
-

@@ -60,7 +60,8 @@ HAL_SITL::HAL_SITL() :
         &sitlRCInput,  /* rcinput */
         &sitlRCOutput, /* rcoutput */
         &sitlScheduler, /* scheduler */
-        &utilInstance), /* util */
+        &utilInstance, /* util */
+        NULL), /* no IO MCU */
     _sitl_state(&sitlState)
 {}
 

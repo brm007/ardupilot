@@ -26,15 +26,17 @@ namespace AP_HAL {
     class RCOutput;
     class Scheduler;
     class Semaphore;
-    
+
     class Util;
+
+    class IOMCUDriver;
 
     /* Utility Classes */
     class Print;
     class Stream;
     class BetterStream;
 
-    /* Typdefs for function pointers (Procedure, Member Procedure) 
+    /* Typdefs for function pointers (Procedure, Member Procedure)
 
        For member functions we use the FastDelegate delegates class
        which allows us to encapculate a member function as a type

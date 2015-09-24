@@ -21,15 +21,6 @@ using namespace Linux;
 
 void LinuxRCInput_Raspilot::init(void*)
 {
-    _spi = hal.spi->device(AP_HAL::SPIDevice_RASPIO);
-    _spi_sem = _spi->get_semaphore();
-
-    if (_spi_sem == NULL) {
-        hal.scheduler->panic(PSTR("PANIC: RCIutput_Raspilot did not get "
-                                  "valid SPI semaphore!"));
-        return; // never reached
-    }
-
     // start the timer process to read samples
     hal.scheduler->register_timer_process(FUNCTOR_BIND_MEMBER(&LinuxRCInput_Raspilot::_poll_data, void));
 }
@@ -43,33 +34,15 @@ void LinuxRCInput_Raspilot::_poll_data(void)
 
     _last_timer = hal.scheduler->micros();
 
-    if (!_spi_sem->take_nonblocking()) {
-        return;
+    uint16_t rcin_raw[LINUX_RC_INPUT_NUM_CHANNELS] = {0};
+
+    if ( hal.iomcu->read(PX4IO_PAGE_RAW_RC_INPUT, 0, LINUX_RC_INPUT_NUM_CHANNELS, rcin_raw) ) {
+        uint16_t rc_ok = rcin_raw[1] & (1 << 4);
+
+        if (rc_ok) {
+            _update_periods(&rcin_raw[6], rcin_raw[0]);
+        }
     }
-
-    struct IOPacket _dma_packet_tx, _dma_packet_rx;
-    uint16_t count = LINUX_RC_INPUT_NUM_CHANNELS;
-    _dma_packet_tx.count_code = count | PKT_CODE_READ;
-    _dma_packet_tx.page = 4;
-    _dma_packet_tx.offset = 0;
-    _dma_packet_tx.crc = 0;
-    _dma_packet_tx.crc = crc_packet(&_dma_packet_tx);
-    /* set raspilotio to read reg4 */
-    _spi->transaction((uint8_t *)&_dma_packet_tx, (uint8_t *)&_dma_packet_rx, sizeof(_dma_packet_tx));
-    /* get reg4 data from raspilotio */
-    _spi->transaction((uint8_t *)&_dma_packet_tx, (uint8_t *)&_dma_packet_rx, sizeof(_dma_packet_tx));
-
-    uint16_t num_values = _dma_packet_rx.regs[0];
-    uint16_t rc_ok = _dma_packet_rx.regs[1] & (1 << 4);
-    uint8_t rx_crc = _dma_packet_rx.crc;
-
-    _dma_packet_rx.crc = 0;
-
-    if ( rc_ok && (rx_crc == crc_packet(&_dma_packet_rx)) ) {
-      _update_periods(&_dma_packet_rx.regs[6], (uint8_t)num_values);
-    }
-
-    _spi_sem->give();
 }
 
 #endif // CONFIG_HAL_BOARD_SUBTYPE

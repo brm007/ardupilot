@@ -20,6 +20,7 @@ static EmptyRCInput rcinDriver;
 static EmptyRCOutput rcoutDriver;
 static EmptyScheduler schedulerInstance;
 static EmptyUtil utilInstance;
+static EmptyIOMCUDriver iomcuDriver;
 
 HAL_Empty::HAL_Empty() :
     AP_HAL::HAL(
@@ -39,7 +40,8 @@ HAL_Empty::HAL_Empty() :
         &rcinDriver,
         &rcoutDriver,
         &schedulerInstance,
-        &utilInstance),
+        &utilInstance,
+        &iomcuDriver),
     _member(new EmptyPrivateMember(123))
 {}
 

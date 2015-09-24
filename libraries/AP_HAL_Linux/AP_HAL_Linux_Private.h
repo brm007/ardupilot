@@ -32,5 +32,6 @@
 #include "ToneAlarmDriver.h"
 #include "ToneAlarmDriver_Raspilot.h"
 #include "Util.h"
+#include "RPIODriver.h"
 
 #endif // __AP_HAL_LINUX_PRIVATE_H__

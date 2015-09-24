@@ -22,8 +22,8 @@ namespace Empty {
     class EmptySemaphore;
     class EmptyScheduler;
     class EmptyUtil;
+    class EmptyIOMCUDriver;
     class EmptyPrivateMember;
 }
 
 #endif // __AP_HAL_EMPTY_NAMESPACE_H__
-

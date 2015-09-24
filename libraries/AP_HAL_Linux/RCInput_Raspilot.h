@@ -9,13 +9,10 @@ class Linux::LinuxRCInput_Raspilot : public Linux::LinuxRCInput
 {
 public:
     void init(void*);
-    
+
 private:
     uint32_t _last_timer;
-    
-    AP_HAL::SPIDeviceDriver *_spi;
-    AP_HAL::Semaphore *_spi_sem;
-    
+
     void _poll_data(void);
 };
 

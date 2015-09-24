@@ -53,13 +53,14 @@ HAL_AVR_APM1::HAL_AVR_APM1() :
         &apm1RCInput,
         &apm1RCOutput,
         &avrScheduler,
-        &avrUtil )
+        &avrUtil,
+        NULL ) /* no IO MCU */
 {}
 
 void HAL_AVR_APM1::init(int argc, char * const argv[]) const {
 
     scheduler->init((void*)&isrRegistry);
-   
+
     /* uartA is the serial port used for the console, so lets make sure
      * it is initialized at boot */
     uartA->begin(115200);

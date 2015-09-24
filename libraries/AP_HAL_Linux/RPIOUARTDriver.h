@@ -20,16 +20,10 @@ protected:
 private:
     bool _in_timer;
 
-    bool sem_take_nonblocking();
-    void sem_give();
-    AP_HAL::SPIDeviceDriver *_spi;
-    AP_HAL::Semaphore *_spi_sem;
-
     uint32_t _last_update_timestamp;
 
     bool _external;
 
-    bool _need_set_baud;
     uint32_t _baudrate;
 };
 

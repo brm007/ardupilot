@@ -21,6 +21,7 @@
 #include "Scheduler.h"
 #include "Semaphores.h"
 #include "Util.h"
+#include "IOMCUDriver.h"
 
 #include "utility/Print.h"
 #include "utility/Stream.h"
@@ -30,4 +31,3 @@
 #include "HAL.h"
 
 #endif // __AP_HAL_H__
-

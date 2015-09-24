@@ -86,18 +86,7 @@ void RaspilotAnalogIn::init(void* implspecific)
 {
     _vcc_pin_analog_source = channel(4);
 
-    _spi = hal.spi->device(AP_HAL::SPIDevice_RASPIO);
-    _spi_sem = _spi->get_semaphore();
-
-    if (_spi_sem == NULL) {
-        hal.scheduler->panic(PSTR("PANIC: RCIutput_Raspilot did not get "
-                                  "valid SPI semaphore!"));
-        return; // never reached
-    }
-
-    hal.scheduler->suspend_timer_procs();
     hal.scheduler->register_timer_process(FUNCTOR_BIND_MEMBER(&RaspilotAnalogIn::_update, void));
-    hal.scheduler->resume_timer_procs();
 }
 
 void RaspilotAnalogIn::_update()
@@ -106,44 +95,22 @@ void RaspilotAnalogIn::_update()
         return;
     }
 
-    if (!_spi_sem->take_nonblocking()) {
+    uint16_t adc_raw[RASPILOT_ADC_MAX_CHANNELS] = {0};
+
+    if ( !hal.iomcu->read(PX4IO_PAGE_RAW_ADC_INPUT, 0, RASPILOT_ADC_MAX_CHANNELS, adc_raw) )
+    {
+        _last_update_timestamp = hal.scheduler->micros();
         return;
     }
-
-    struct IOPacket _dma_packet_tx, _dma_packet_rx;
-    uint16_t count = RASPILOT_ADC_MAX_CHANNELS;
-    _dma_packet_tx.count_code = count | PKT_CODE_READ;
-    _dma_packet_tx.page = PX4IO_PAGE_RAW_ADC_INPUT;
-    _dma_packet_tx.offset = 0;
-    _dma_packet_tx.crc = 0;
-    _dma_packet_tx.crc = crc_packet(&_dma_packet_tx);
-    /* set raspilotio to read reg4 */
-    _spi->transaction((uint8_t *)&_dma_packet_tx, (uint8_t *)&_dma_packet_rx, sizeof(_dma_packet_tx));
-
-    hal.scheduler->delay_microseconds(200);
-
-    count = 0;
-    _dma_packet_tx.count_code = count | PKT_CODE_READ;
-    _dma_packet_tx.page = 0;
-    _dma_packet_tx.offset = 0;
-    _dma_packet_tx.crc = 0;
-    _dma_packet_tx.crc = crc_packet(&_dma_packet_tx);
-    /* get reg4 data from raspilotio */
-    _spi->transaction((uint8_t *)&_dma_packet_tx, (uint8_t *)&_dma_packet_rx, sizeof(_dma_packet_tx));
-
-    _spi_sem->give();
 
     for (int16_t i = 0; i < RASPILOT_ADC_MAX_CHANNELS; i++) {
         for (int16_t j=0; j < RASPILOT_ADC_MAX_CHANNELS; j++) {
             RaspilotAnalogSource *source = _channels[j];
 
             if (source != NULL && i == source->_pin) {
-                source->_value = _dma_packet_rx.regs[i] * 3.3 / 4096.0;
+                source->_value = adc_raw[i] * 3.3 / 4096.0;
             }
         }
-
-        //printf("ADC_%d: %0.3f\n",i,_dma_packet_rx.regs[i] * 3.3 / 4096.0);
-
     }
 
     _last_update_timestamp = hal.scheduler->micros();

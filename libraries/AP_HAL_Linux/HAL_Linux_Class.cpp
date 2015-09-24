@@ -121,6 +121,12 @@ static Empty::EmptyRCOutput rcoutDriver;
 static LinuxScheduler schedulerInstance;
 static LinuxUtil utilInstance;
 
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
+static LinuxRPIODriver iomcuDriver;
+#else
+static Empty::EmptyIOMCUDriver iomcuDriver;
+#endif
+
 HAL_Linux::HAL_Linux() :
     AP_HAL::HAL(
         &uartADriver,
@@ -145,7 +151,8 @@ HAL_Linux::HAL_Linux() :
         &rcinDriver,
         &rcoutDriver,
         &schedulerInstance,
-        &utilInstance)
+        &utilInstance,
+        &iomcuDriver)
 {}
 
 void _usage(void)
@@ -230,6 +237,7 @@ void HAL_Linux::init(int argc,char* const argv[]) const
     uartE->begin(115200);
     analogin->init(NULL);
     utilInstance.init(argc+gopt.optind-1, &argv[gopt.optind-1]);
+    iomcu->init();
 }
 
 const HAL_Linux AP_HAL_Linux;
