@@ -10,6 +10,8 @@ class Linux::LinuxRCInput_Raspilot : public Linux::LinuxRCInput
 public:
     void init(void*);
 
+    bool rc_bind(int dsmMode);
+
 private:
     uint32_t _last_timer;
 
